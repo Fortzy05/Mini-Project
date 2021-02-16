@@ -1,6 +1,16 @@
 var express = require("express");
-var app = express();
 
+var app = express();
+var chalk = require("chalk");
+var debug = require("debug")("app");
+
+var path = require('path');
+
+
+app.use(express.static(path.join(__dirname, '/public/')));
+app.use('/css', express.static(path.join(__dirname, '/node_modules/bootstrap/dist/css')));
+app.use('/js', express.static(path.join(__dirname, '/node_modules/bootstrap/dist/js')));
+app.use('/js', express.static(path.join(__dirname, '/node_modules/jquery/dist')));
 app.set("view engine", "ejs");
 app.get("/", function (req, res) {
     res.render("landing");
@@ -17,5 +27,5 @@ app.get("/campgrounds", function (req, res) {
     res.render("campgrounds", { campgrounds: campgrounds });
 });
 app.listen(3000, function () {
-    console.log("The YelpCamp Sever Has Started");
+    debug('listening on port ' + chalk.green('3000'));
 });
