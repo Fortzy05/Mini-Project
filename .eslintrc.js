@@ -11,5 +11,7 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
+    'comma-dangle': 0,
+    'no-unexpected-multiline': 'warn',
   },
 };

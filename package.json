@@ -5,24 +5,38 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "set DEBUG=app & node app.js",
+    "start": "set DEBUG=app & nodemon app.js",
     "lint": "eslint app.js"
   },
   "author": "omorodion fortune",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "bootstrap": "^4.6.0",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
     "jquery": "^3.5.1",
+    "mongoose": "^5.12.14",
     "node.js": "0.0.1-security",
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "popper.js": "^1.16.1"
   },
   "devDependencies": {
     "eslint": "^7.20.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1"
+  },
+  "nodemonConfig": {
+    "restartable": "rs",
+    "ignore": [
+      "node_module/**/node_module"
+    ],
+    "delay": "2500",
+    "env": {
+      "NODE_ENV": "development",
+      "PORT": 4000
+    }
   }
 }
