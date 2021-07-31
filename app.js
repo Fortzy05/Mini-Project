@@ -1,36 +1,21 @@
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/Yelp-Camp', { useNewUrlParser: true, useUnifiedTopology: true });
+const express = require('express'),
+  app = express(),
+  bodyParser = require('body-parser'),
+  mongoose = require('mongoose'),
+  passport = require('passport'),
+  LocalStrategy = require('passport-local'),
+  Campground = require('./models/Campground.js'),
+  Comment = require('./models/Comment.js'),
+  User = require('./models/Users.js'),
+  seedDB = require('./seeds');
 
-const campgroundSchema = new mongoose.Schema({
-  name: 'string',
-  image: 'string'
-});
-
-const Campground = mongoose.model('Campground', campgroundSchema);
-
-//Campground.create(
-// {
-//   name: 'Granite Hill',
-//   image: 'https://cdn.pixabay.com/photo/2021/05/23/17/52/bellies-6276856__340.jpg'
-// }, function (err, Campground) {
-//   if (err) {
-//    console.log(err);
-// } else {
-// console.log('Newly Created Campground: ');
-//  console.log(Campground);
-// }
-// });
 const chalk = require('chalk');
 const debug = require('debug')('app');
 const path = require('path');
-const { stringify } = require('querystring');
-const { createPrivateKey } = require('crypto');
 
 const port = process.env.PORT || 3000;
 
+mongoose.connect('mongodb://localhost:27017/Yelp-Camp', { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '/public/')));
@@ -38,39 +23,79 @@ app.use('/css', express.static(path.join(__dirname, '/node_modules/bootstrap/dis
 app.use('/js', express.static(path.join(__dirname, '/node_modules/bootstrap/dist/js')));
 app.use('/js', express.static(path.join(__dirname, '/node_modules/jquery/dist')));
 app.set('view engine', 'ejs');
+SeedDB();
+
+//PASSPORT CONFIGURATION
+app.use(require('express-sessions')({
+  secret: 'fortune is smart!',
+  resave: false,
+  saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.get('/', (req, res) => {
   res.render('landing');
 });
 
 app.get('/campgrounds', (req, res) => {
-  Campground.find({}, function (err, allCampground) {
+  Campground.find({}, (err, allCampground) => {
     if (err) {
+      // eslint-disable-next-line no-console
       console.log(err);
     } else {
       res.render('campgrounds', { campgrounds: allCampground });
     }
   });
-
 });
 
 app.post('/campgrounds', (req, res) => {
   const { name } = req.body.name;
   const { image } = req.body.image;
   const NewCampground = {
-    name: name, image: image
+    name, image
   };
-  Campground.create(NewCampground, function (err, newlyCreated) {
+
+  Campground.create(NewCampground, (err, newlyCreated) => {
     if (err) {
+      // eslint-disable-next-line no-console
       console.log(err);
     } else {
       res.redirect('/campgrounds');
     }
   });
-
 });
 
 app.get('/campgrounds/new', (req, res) => {
   res.render('new.ejs');
+});
+
+//=====================
+// AUTH ROUTES
+//=====================
+
+//SHOW REGISTER FORM
+app.get('/register', (req, res) => {
+  res.render('register');
+});
+
+// handle sign up logic
+
+app.post('/register', (req, res) => {
+  var newUser = new User({ username: req.body.username });
+  User.register(newUser, req.body.password, function (err, user) {
+    if (err) {
+      console.log(err);
+      return res.render('register')
+    }
+    passport.authenticate('local')(req, res, function () {
+      res.redirect('/campgrounds');
+    });
+  });
 });
 
 app.listen(port, () => {
