@@ -6,8 +6,8 @@ const express = require('express'),
   LocalStrategy = require('passport-local'),
   Campground = require('./models/Campground.js'),
   Comment = require('./models/Comment.js'),
-  User = require('./models/Users.js'),
-  seedDB = require('./seeds');
+  User = require('./models/Users.js');
+
 
 const chalk = require('chalk');
 const debug = require('debug')('app');
@@ -23,7 +23,7 @@ app.use('/css', express.static(path.join(__dirname, '/node_modules/bootstrap/dis
 app.use('/js', express.static(path.join(__dirname, '/node_modules/bootstrap/dist/js')));
 app.use('/js', express.static(path.join(__dirname, '/node_modules/jquery/dist')));
 app.set('view engine', 'ejs');
-SeedDB();
+
 
 //PASSPORT CONFIGURATION
 app.use(require('express-sessions')({
