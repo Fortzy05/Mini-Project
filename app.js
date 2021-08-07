@@ -8,6 +8,9 @@ const express = require('express'),
   Comment = require('./models/Comment.js'),
   User = require('./models/Users.js');
 
+const commentRoutes = require('./routes/comments'),
+  campgroundRoutes = require('./routes/campgrounds'),
+  indexRoutes = require('./routes/index');
 
 const chalk = require('chalk');
 const debug = require('debug')('app');
@@ -23,10 +26,12 @@ app.use('/css', express.static(path.join(__dirname, '/node_modules/bootstrap/dis
 app.use('/js', express.static(path.join(__dirname, '/node_modules/bootstrap/dist/js')));
 app.use('/js', express.static(path.join(__dirname, '/node_modules/jquery/dist')));
 app.set('view engine', 'ejs');
-
+app.use('/', indexRoutes);
+app.use('/campgrounds', campgroundRoutes);
+app.use('/camgrounds/:id/comments', commentRoutes);
 
 //PASSPORT CONFIGURATION
-app.use(require('express-sessions')({
+app.use(require('express-session')({
   secret: 'fortune is smart!',
   resave: false,
   saveUninitialized: false
@@ -38,64 +43,9 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.get('/', (req, res) => {
-  res.render('landing');
-});
-
-app.get('/campgrounds', (req, res) => {
-  Campground.find({}, (err, allCampground) => {
-    if (err) {
-      // eslint-disable-next-line no-console
-      console.log(err);
-    } else {
-      res.render('campgrounds', { campgrounds: allCampground });
-    }
-  });
-});
-
-app.post('/campgrounds', (req, res) => {
-  const { name } = req.body.name;
-  const { image } = req.body.image;
-  const NewCampground = {
-    name, image
-  };
-
-  Campground.create(NewCampground, (err, newlyCreated) => {
-    if (err) {
-      // eslint-disable-next-line no-console
-      console.log(err);
-    } else {
-      res.redirect('/campgrounds');
-    }
-  });
-});
-
-app.get('/campgrounds/new', (req, res) => {
-  res.render('new.ejs');
-});
-
-//=====================
-// AUTH ROUTES
-//=====================
-
-//SHOW REGISTER FORM
-app.get('/register', (req, res) => {
-  res.render('register');
-});
-
-// handle sign up logic
-
-app.post('/register', (req, res) => {
-  var newUser = new User({ username: req.body.username });
-  User.register(newUser, req.body.password, function (err, user) {
-    if (err) {
-      console.log(err);
-      return res.render('register')
-    }
-    passport.authenticate('local')(req, res, function () {
-      res.redirect('/campgrounds');
-    });
-  });
+app.use(function (req, res, next) {
+  res.locals.currentUser = req.user;
+  next();
 });
 
 app.listen(port, () => {
